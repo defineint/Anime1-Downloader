@@ -20,7 +20,7 @@
    pip install -r requirements.txt
    ```
 ## .exe 使用
-您可以前往 [Releases 頁面]() 下載最新版本使用
+您可以前往 [Releases 頁面](https://github.com/defineint/Anime1-Downloader/releases) 下載最新版本使用
 請注意以下幾點：
 1. 請確保電腦防毒不會將其刪除，可自行關閉防毒，但後果自負
 2. 因爬蟲所需，請確保電腦已安裝 `Chrome 瀏覽器`，且程式會自動偵測環境
