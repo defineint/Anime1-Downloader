@@ -1,4 +1,4 @@
-function SettingsCard({ url, setUrl, basePath, setBasePath, loading, handleParse }) {
+function SettingsCard({ url, setUrl, loading, handleParse }) {
   return (
     <div style={{ 
       padding: '20px', 
@@ -7,7 +7,7 @@ function SettingsCard({ url, setUrl, basePath, setBasePath, loading, handleParse
       border: '1px solid #e2e8f0',
       marginBottom: '25px' 
     }}>
-      <div style={{ marginBottom: '15px' }}>
+      <div>
         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#4a5568' }}>
           動畫首頁網址：
         </label>
@@ -26,19 +26,6 @@ function SettingsCard({ url, setUrl, basePath, setBasePath, loading, handleParse
         >
           {loading ? '解析中...' : '開始解析'}
         </button>
-      </div>
-
-      <div>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#4a5568' }}>
-          本機儲存路徑：
-        </label>
-        <input
-          type="text"
-          placeholder="例如: D:\Anime\"
-          value={basePath}
-          onChange={(e) => setBasePath(e.target.value)} 
-          style={{ width: '505px', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e0' }}
-        />
       </div>
     </div>
   );

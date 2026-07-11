@@ -7,6 +7,7 @@ export function useAnimeDownload() {
   const [episodes, setEpisodes] = useState([]);
   const [basePath, setBasePath] = useState(() => localStorage.getItem('anime_download_path') || '');
   const [episodeTasks, setEpisodeTasks] = useState({});
+  const API_BASE = import.meta.env.VITE_API_URL || '';
 
   // 同步本地儲存路徑
   useEffect(() => {
@@ -18,7 +19,7 @@ export function useAnimeDownload() {
     if (!taskId) return;
     const intervalId = setInterval(async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/progress/${taskId}`);
+        const response = await fetch(`${API_BASE}/api/progress/${taskId}`);
         if (!response.ok) {
           clearInterval(intervalId);
           return;
@@ -48,7 +49,7 @@ export function useAnimeDownload() {
   useEffect(() => {
     const syncActiveTasks = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/active-tasks');
+        const response = await fetch(`${API_BASE}/api/active-tasks`);
         if (!response.ok) return;
         const result = await response.json();
         if (result.status === 'success' && result.active_tasks) {
@@ -79,7 +80,7 @@ export function useAnimeDownload() {
     if (!url) return alert('請先輸入網址！');
     setLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/parse', {
+      const response = await fetch(`${API_BASE}/api/parse`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
@@ -110,7 +111,6 @@ export function useAnimeDownload() {
   // 發送下載請求
   const submitDownloadTask = async (selectedEpisodes) => {
     if (!Array.isArray(selectedEpisodes) || selectedEpisodes.length === 0) return;
-    if (!basePath) return alert('請先輸入本機儲存路徑！');
 
     setEpisodeTasks((prev) => {
       const nextTasks = { ...prev };
@@ -123,10 +123,9 @@ export function useAnimeDownload() {
     try {
       const payload = {
         anime_title: animeTitle,
-        base_path: basePath,
         episodes: selectedEpisodes,
       };
-      const response = await fetch('http://127.0.0.1:8000/api/download', {
+      const response = await fetch(`${API_BASE}/api/download`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

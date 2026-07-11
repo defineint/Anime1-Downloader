@@ -11,7 +11,7 @@ import threading
 
 app = FastAPI()
 
-# 配置 CORS，讓本地開發運行的 React (Port 5173) 能順利存取 API
+# 配置 CORS：雖然前端未來會用相對路徑，但保留這個可以讓你在開發環境微調時更有彈性
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,10 +27,11 @@ download_tasks = {}
 # 執行緒鎖，確保多執行緒在寫入 progress_map 時不會發生衝突
 progress_lock = threading.Lock()
 
+DOWNLOAD_ROOT = os.getenv("DOWNLOAD_ROOT", "./downloads")
+
 
 class ParseRequest(BaseModel):
     url: str
-    base_path: str = ""
 
 
 @app.post("/api/parse")
@@ -38,16 +39,12 @@ def parse_anime(payload: ParseRequest):
     try:
         # 呼叫爬蟲核心撈取動漫網頁資訊
         result = crawler.parse_anime_page(payload.url)
-        
-        base_path = payload.base_path.strip()
         anime_title = result.get("title", "").strip()
         
-        # 如果前端有傳送儲存路徑，則主動去硬碟掃描是否已有正式的 .mp4 完工檔
-        if base_path and anime_title:
-            dest_path = os.path.join(base_path, anime_title)
+        if anime_title:
+            dest_path = os.path.join(DOWNLOAD_ROOT, anime_title)
             for epi in result.get("episodes", []):
                 file_full_path = os.path.join(dest_path, f"{epi['name']}.mp4")
-                # 嚴格認定：只認存在且非臨時檔的 .mp4
                 epi["is_existed"] = os.path.exists(file_full_path)
         else:
             for epi in result.get("episodes", []):
@@ -58,15 +55,14 @@ def parse_anime(payload: ParseRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ==================== 調整三：定義各集獨立的資料格式 ====================
 class EpisodeItem(BaseModel):
     name: str
     link: str
     cookies: dict
 
+
 class DownloadRequest(BaseModel):
     episodes: list[EpisodeItem]
-    base_path: str
     anime_title: str
 
 
@@ -85,7 +81,6 @@ def download_single_episode(task_id: str, epi: EpisodeItem, dest_path: str, head
             total_size = int(r.headers.get('content-length', 0))
             
             dl_size = 0
-            # 1. 優先寫入到 .part 暫存檔，確保不污染正式檔名
             with open(file_temp_path, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=10240):
                     if chunk:
@@ -96,10 +91,9 @@ def download_single_episode(task_id: str, epi: EpisodeItem, dest_path: str, head
                             with progress_lock:
                                 download_tasks[task_id]["progress_map"][epi.name] = round(file_progress, 2)
             
-            # 2. 確定完整下載完畢後，將臨時檔更名回正式的 .mp4
             if os.path.exists(file_temp_path):
                 if os.path.exists(file_full_path):
-                    os.remove(file_full_path) # 若有舊檔先移除
+                    os.remove(file_full_path) 
                 os.rename(file_temp_path, file_full_path)
                 
             with progress_lock:
@@ -107,13 +101,11 @@ def download_single_episode(task_id: str, epi: EpisodeItem, dest_path: str, head
                 
     except Exception as e:
         print(f"下載 {epi.name} 發生錯誤: {e}")
-        # 下載失敗時，清理殘留的 .part 髒資料
         if os.path.exists(file_temp_path):
             try:
                 os.remove(file_temp_path)
             except:
                 pass
-        # 失敗也強制將進度歸為 100，避免前端進度條卡死
         with progress_lock:
             download_tasks[task_id]["progress_map"][epi.name] = 100.0
 
@@ -128,25 +120,19 @@ def async_download_worker(task_id: str, episodes: list[EpisodeItem], dest_path: 
     }
     os.makedirs(dest_path, exist_ok=True)
 
-    # 限制最高併發下載數量為 3，兼顧效能與安全性
     MAX_CONCURRENT_DOWNLOADS = 3
     with ThreadPoolExecutor(max_workers=MAX_CONCURRENT_DOWNLOADS) as executor:
         for epi in episodes:
             executor.submit(download_single_episode, task_id, epi, dest_path, headers)
-            time.sleep(0.5) # 稍微錯開各執行緒的啟動，避免瞬間併發過高
+            time.sleep(0.5)
 
-    # 當線程池全部收工，更新主狀態
     with progress_lock:
         download_tasks[task_id]["status"] = "completed"
 
 
 @app.post("/api/download")
 def start_download(payload: DownloadRequest, background_tasks: BackgroundTasks):
-    cleaned_path = payload.base_path.strip()
-    if not cleaned_path:
-        raise HTTPException(status_code=400, detail="下載請求拒絕：未偵測到有效的儲存路徑。")
-        
-    dest_path = os.path.join(cleaned_path, payload.anime_title.strip())
+    dest_path = os.path.join(DOWNLOAD_ROOT, payload.anime_title.strip())
     task_id = str(uuid.uuid4())
     
     download_tasks[task_id] = {
