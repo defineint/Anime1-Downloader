@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # 前端網頁與對外入口
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - "5173:80"  
+    depends_on:
+      - backend
+    networks:
+      - anime_net
+    restart: unless-stopped
+
+  # FastAPI 後端
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - SELENIUM_URL=http://selenium-chrome:4444/wd/hub # 指向隔壁的 Chrome 容器
+      - DOWNLOAD_ROOT=/downloads                        # 容器內部的固定虛擬路徑
+    volumes:
+      # 讀取當前目錄下的 .env 檔案中的路徑，掛載到容器內的 /downloads
+      - ${ANIME_DOWNLOAD_PATH:-./downloads}:/downloads
+    depends_on:
+      - selenium-chrome
+    networks:
+      - anime_net
+    restart: unless-stopped
+
+  # Google Chrome
+  selenium-chrome:
+    image: selenium/standalone-chrome:latest
+    shm_size: 2gb
+    networks:
+      - anime_net
+    restart: unless-stopped
+
+networks:
+  anime_net:
+    driver: bridge
