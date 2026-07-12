@@ -66,6 +66,11 @@ docker compose up -d
 ```Plaintext
 ├── frontend/          # Vite + React 靜態前端 
 ├── backend/           # FastAPI 後端核心控制台
+├── requirements.txt
+├── Dockerfile
+└── app/
+     ├── main.py
+     └── crawler.py  
 ├── .env.example       # 環境變數配置範本
 └── docker-compose.yml # 服務編排規格書
 ```
