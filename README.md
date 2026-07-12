@@ -6,7 +6,7 @@
 
 ---
 
-一個可以使用私有雲、Home Server 與 NAS 的內網動漫下載全端工具。採用無狀態前端與安全沙盒後端架構，支援 Docker Compose 一鍵部署。
+本專案是一個可以使用私有雲、Home Server 或 NAS 的內網動漫下載全端工具。採用無狀態前端與安全沙盒後端架構，支援 Docker Compose 一鍵部署。
 
 ---
 
