@@ -1,11 +1,14 @@
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
 COPY requirements.txt .
+
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
+
+ENV PYTHONPATH=/app/app
 
 RUN useradd -m appuser && chown -R appuser:appuser /app
 USER appuser
