@@ -57,7 +57,7 @@ function EpisodeList({
                     disabled={isButtonDisabled}
                     className={btnStyle}
                   >
-                    {task?.status === 'completed' ? '✓ 已完成' : (task?.status === 'downloading' || task?.status === 'pending' ? '⚡ 處理中' : '🚀 下載此集')}
+                    {task?.status === 'completed' ? '已完成' : (task?.status === 'downloading' || task?.status === 'pending' ? '處理中...' : '下載此集')}
                   </button>
                 </div>
 
