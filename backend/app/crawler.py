@@ -18,6 +18,7 @@ class AnimeScraper:
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
         
+        chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
         # 偵測到環境變數有獨立 Chrome URL，就走遠端驅動，否則走本機
         selenium_url = os.getenv("SELENIUM_URL", None)
         if selenium_url:
@@ -46,17 +47,22 @@ class AnimeScraper:
             video_srcs = [v.get_attribute('src') for v in all_videos]
             
             episodes_data = []
+            
+            # 在動態抓取前，先跟容器內的 Chrome 要它的真實真實 User-Agent
+            real_user_agent = self.driver.execute_script("return navigator.userAgent;")
+            
             for t, src in zip(titles, video_srcs):
                 if src:
                     self.driver.get(src)
                     selenium_cookies = self.driver.get_cookies()
                     cookies_dict = {c['name']: c['value'] for c in selenium_cookies}
                     
-                    # 標題、連結、Cookie 打包
+                    # 標題、連結、Cookie，以及剛剛偷到的真實 UA 一起打包
                     episodes_data.append({
                         "name": t,
                         "link": src,
-                        "cookies": cookies_dict
+                        "cookies": cookies_dict,
+                        "ua": real_user_agent
                     })
             
             anime_title = titles[0][:-2] if titles else "Unknown"
