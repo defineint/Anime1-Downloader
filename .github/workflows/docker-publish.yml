@@ -3,7 +3,7 @@ name: Build and Publish Docker Images
 on:
   push:
     tags:
-      - 'v2.0' # 當你在 Git 打上 v2.0.0、v2.1.0 等版本標籤並推送時，就會觸發這個流水線
+      - 'v*' # 當你在 Git 打上 v2.0.0、v2.1.0 等版本標籤並推送時，就會觸發這個流水線
 
 env:
   REGISTRY: ghcr.io
