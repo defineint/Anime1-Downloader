@@ -7,7 +7,7 @@ function App() {
 
   return (
     <div style={{ padding: '30px', fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto' }}>
-      <h2>內網動漫下載全端工具</h2>
+      <h2>anime1 動漫下載全端工具</h2>
       <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '20px 0' }} />
       
       {/* 區塊一：設定與網址輸入 */}
