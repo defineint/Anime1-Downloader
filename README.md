@@ -10,6 +10,22 @@
 
 ---
 
+## 專案架構
+
+```Plaintext
+├── frontend/          # Vite + React 靜態前端 
+├── backend/           # FastAPI 後端核心控制台
+├── requirements.txt
+├── Dockerfile
+└── app/
+     ├── main.py
+     └── crawler.py  
+├── .env.example       # 環境變數配置範本
+└── docker-compose.yml # 服務編排規格書
+```
+
+---
+
 ## 專案特性
 
 - **一鍵部署**：內建多階段構建 Nginx 前端、FastAPI 後端以及獨立 Chrome 爬蟲服務。
@@ -61,16 +77,10 @@ docker compose up -d
 部署完成後，打開瀏覽器輸入以下網址即可進入主介面：
 `http://localhost:5173` (若是遠端伺服器，請將 localhost 換成您的伺服器 IP)
 
-## 專案架構
+---
 
-```Plaintext
-├── frontend/          # Vite + React 靜態前端 
-├── backend/           # FastAPI 後端核心控制台
-├── requirements.txt
-├── Dockerfile
-└── app/
-     ├── main.py
-     └── crawler.py  
-├── .env.example       # 環境變數配置範本
-└── docker-compose.yml # 服務編排規格書
-```
+## 使用注意事項
+> [!CAUTION]
+> 本專案會在使用者設定的路徑下產生一個 `json` 檔案，**請不要隨意刪除或是移動該檔案位置**，該檔案為系統的輕量資料庫，用於持久化記錄您已解析、下載中、等待中及已完成的動畫任務狀態。  
+> 若遺失或損毀，網頁端將失去歷史進度記憶，且無法自動識別哪些集數已存在於硬碟中，**進而導致重複下載或是發生錯誤**。  
+> 建議使用者直接在想要存放的位置建立一個檔案資料夾 `EX: MyAnimeDL/` ，並將 `.env` 路徑設定為此資料夾
